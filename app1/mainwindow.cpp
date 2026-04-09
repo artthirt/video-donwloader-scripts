@@ -48,7 +48,7 @@ QString MainWindow::findFFmpeg()
     
     // Check system PATH
     QProcess which;
-    which.start("where", QStringList() << "ffmpeg");
+    which.start("which", QStringList() << "ffmpeg");
     which.waitForFinished();
     QString output = QString::fromUtf8(which.readAllStandardOutput()).trimmed();
     if (!output.isEmpty()) {

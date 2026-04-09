@@ -1,5 +1,6 @@
 #include "ffmpegworker.h"
 #include <QRegularExpression>
+#include <qeventloop.h>
 
 FFmpegWorker::FFmpegWorker(const QStringList &args, QObject *parent)
     : QThread(parent)
@@ -126,6 +127,8 @@ void FFmpegWorker::run()
         return;
     }
     
+    QEventLoop loop;
+
     // Wait for completion
     while (m_process->state() != QProcess::NotRunning) {
         if (!m_running) {
@@ -138,6 +141,7 @@ void FFmpegWorker::run()
             m_process = nullptr;
             return;
         }
+        loop.processEvents();
         msleep(50);
     }
     
