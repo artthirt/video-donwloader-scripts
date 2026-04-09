@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>900</width>
+    <height>700</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>900</width>
+    <height>700</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>M3U8 to MP4 Downloader</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>10</number>
+    </property>
+    <property name="leftMargin">
+     <number>15</number>
+    </property>
+    <property name="topMargin">
+     <number>15</number>
+    </property>
+    <property name="rightMargin">
+     <number>15</number>
+    </property>
+    <property name="bottomMargin">
+     <number>15</number>
+    </property>
+    <item>
+     <widget class="QGroupBox" name="groupBoxInput">
+      <property name="title">
+       <string>Source &amp; Destination</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_2">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <item>
+          <widget class="QLabel" name="labelUrl">
+           <property name="text">
+            <string>M3U8 URL:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEditUrl">
+           <property name="placeholderText">
+            <string>https://example.com/playlist.m3u8</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnPaste">
+           <property name="toolTip">
+            <string>Paste URL from clipboard and auto-suggest filename</string>
+           </property>
+           <property name="text">
+            <string>Paste &amp; Auto-name</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QLabel" name="labelOutput">
+           <property name="text">
+            <string>Output File:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEditOutput">
+           <property name="placeholderText">
+            <string>output.mp4</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnBrowse">
+           <property name="text">
+            <string>Browse...</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="groupBoxOptions">
+      <property name="title">
+       <string>Encoding Options</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_3">
+         <item>
+          <widget class="QCheckBox" name="checkBoxCopy">
+           <property name="text">
+            <string>Copy streams (-c copy) - Fast, no re-encoding</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="labelAudioFilter">
+           <property name="text">
+            <string>Audio Filter:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="comboBoxAudioFilter">
+           <item>
+            <property name="text">
+             <string>aac_adtstoasc (default)</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>none</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <item>
+          <widget class="QLabel" name="labelCRF">
+           <property name="text">
+            <string>Quality (CRF):</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QSpinBox" name="spinBoxCRF">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>0=lossless, 23=default, 51=worst quality</string>
+           </property>
+           <property name="minimum">
+            <number>0</number>
+           </property>
+           <property name="maximum">
+            <number>51</number>
+           </property>
+           <property name="value">
+            <number>23</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="labelPreset">
+           <property name="text">
+            <string>Preset:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="comboBoxPreset">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <item>
+            <property name="text">
+             <string>ultrafast</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>superfast</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>veryfast</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>faster</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>fast</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>medium</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>slow</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>slower</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>veryslow</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>0</width>
+             <height>0</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <item>
+          <widget class="QLabel" name="labelExtra">
+           <property name="text">
+            <string>Extra Args:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="lineEditExtra">
+           <property name="placeholderText">
+            <string>-bsf:a aac_adtstoasc -vf scale=1920:1080</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QProgressBar" name="progressBar">
+      <property name="value">
+       <number>0</number>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPlainTextEdit" name="plainTextEditLog">
+      <property name="font">
+       <font>
+        <family>Consolas</family>
+        <pointsize>9</pointsize>
+       </font>
+      </property>
+      <property name="maximumBlockCount">
+       <number>1000</number>
+      </property>
+      <property name="placeholderText">
+       <string>FFmpeg output will appear here...</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_6">
+      <item>
+       <widget class="QPushButton" name="btnStart">
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+    padding: 8px;
+}
+QPushButton:hover {
+    background-color: #45a049;
+}
+QPushButton:disabled {
+    background-color: #cccccc;
+}</string>
+        </property>
+        <property name="text">
+         <string>▶ Start Download</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnCancel">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background-color: #f44336;
+    color: white;
+    font-weight: bold;
+    padding: 8px;
+}
+QPushButton:hover {
+    background-color: #da190b;
+}
+QPushButton:disabled {
+    background-color: #cccccc;
+}</string>
+        </property>
+        <property name="text">
+         <string>⏹ Cancel</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnClear">
+        <property name="text">
+         <string>Clear Log</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
