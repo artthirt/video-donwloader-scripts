@@ -10,6 +10,7 @@
 #include <QFileInfo>
 #include <QUrl>
 #include <QScrollBar>
+#include <QSettings>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -37,24 +38,39 @@ MainWindow::MainWindow(QWidget *parent)
             onFinished(success, msg);
         }, Qt::QueuedConnection);
     };
+
+    loadSettings();
 }
 
-MainWindow::~MainWindow() = default;
+MainWindow::~MainWindow()
+{
+    saveSettings();
+
+    ui.reset();
+}
 
 void MainWindow::setupConnections()
 {
-    connect(ui->lineEditUrl, &QLineEdit::textChanged, this, &MainWindow::onUrlTextChanged);
+    //connect(ui->lineEditUrl, &QLineEdit::textChanged, this, &MainWindow::onUrlTextChanged);
+    connect(ui->lineEditUrl, &QComboBox::currentTextChanged, this, &MainWindow::onUrlTextChanged);
     connect(ui->btnPaste, &QPushButton::clicked, this, &MainWindow::onPasteClicked);
     connect(ui->btnBrowse, &QPushButton::clicked, this, &MainWindow::onBrowseClicked);
     connect(ui->checkBoxCopy, &QCheckBox::stateChanged, this, &MainWindow::onCopyToggled);
     connect(ui->btnStart, &QPushButton::clicked, this, &MainWindow::onStartClicked);
     connect(ui->btnCancel, &QPushButton::clicked, this, &MainWindow::onCancelClicked);
     connect(ui->btnClear, &QPushButton::clicked, this, &MainWindow::onClearClicked);
+    connect(ui->tbtClearListUrls, &QToolButton::clicked, this, [this](){
+        if(QMessageBox::information(nullptr, "Clear list or url", "Are you sure?",
+                                     QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Ok)
+        {
+            ui->lineEditUrl->clear();
+        }
+    });
 }
 
 void MainWindow::suggestFilename()
 {
-    QString url = ui->lineEditUrl->text().trimmed();
+    QString url = ui->lineEditUrl->currentText().trimmed();
     if (url.isEmpty()) return;
     
     QUrl qurl(url);
@@ -71,7 +87,7 @@ void MainWindow::suggestFilename()
     }
 }
 
-void MainWindow::onUrlTextChanged()
+void MainWindow::onUrlTextChanged(const QString &text)
 {
     suggestFilename();
 }
@@ -81,7 +97,7 @@ void MainWindow::onPasteClicked()
     QClipboard *clipboard = QApplication::clipboard();
     QString text = clipboard->text();
     if (!text.isEmpty()) {
-        ui->lineEditUrl->setText(text);
+        ui->lineEditUrl->setCurrentText(text);
         suggestFilename();
     }
 }
@@ -109,7 +125,7 @@ void MainWindow::onCopyToggled(int state)
 
 bool MainWindow::validateInputs()
 {
-    QString url = ui->lineEditUrl->text().trimmed();
+    QString url = ui->lineEditUrl->currentText().trimmed();
     QString output = ui->lineEditOutput->text().trimmed();
     
     if (url.isEmpty()) {
@@ -124,12 +140,49 @@ bool MainWindow::validateInputs()
     return true;
 }
 
+void MainWindow::loadSettings()
+{
+    QSettings settings;
+
+    auto listUrls = settings.value("list_urls").toStringList();
+    ui->lineEditUrl->addItems(listUrls);
+}
+
+void MainWindow::saveSettings()
+{
+    QSettings settings;
+
+    QStringList listUrls;
+    for(int i = 0; i < ui->lineEditUrl->count(); ++i){
+        listUrls << ui->lineEditUrl->itemText(i);
+    }
+    settings.setValue("list_urls", listUrls);
+}
+
+void MainWindow::addUrlToHistory(const QString &url)
+{
+    QStringList listUrls;
+    for(int i = 0; i < ui->lineEditUrl->count(); ++i){
+        listUrls << ui->lineEditUrl->itemText(i);
+    }
+    if(listUrls.contains(url)){
+        return;
+    }
+    listUrls << url;
+    ui->lineEditUrl->clear();
+    ui->lineEditUrl->addItems(listUrls);
+    QEventLoop lp;
+    lp.processEvents();
+}
+
 void MainWindow::onStartClicked()
 {
     if (!validateInputs()) return;
     
-    QString url = ui->lineEditUrl->text().trimmed();
+    QString url = ui->lineEditUrl->currentText().trimmed();
     QString output = ui->lineEditOutput->text().trimmed();
+    addUrlToHistory(url);
+    saveSettings();
     
     ui->plainTextEditLog->clear();
     ui->plainTextEditLog->appendPlainText(QString("Input: %1\n").arg(url));

@@ -21,7 +21,7 @@ public:
     ~MainWindow();
 
 private slots:
-    void onUrlTextChanged();
+    void onUrlTextChanged(const QString &text);
     void onPasteClicked();
     void onBrowseClicked();
     void onCopyToggled(int state);
@@ -36,6 +36,11 @@ private:
     void setupConnections();
     void suggestFilename();
     bool validateInputs();
+
+    void loadSettings();
+    void saveSettings();
+
+    void addUrlToHistory(const QString& url);
 
     std::unique_ptr<Ui::MainWindow> ui;
     FFmpegDecoder *m_decoder;
