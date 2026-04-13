@@ -10,11 +10,23 @@ from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QProgressBar, QPlainTextEdit,
     QFileDialog, QMessageBox, QGroupBox, QCheckBox, QSpinBox,
-    QComboBox, QStatusBar
+    QComboBox, QStatusBar, QSizePolicy, QToolButton
 )
-from PyQt6.QtCore import QThread, pyqtSignal, Qt
-from PyQt6.QtGui import QFont, QPalette, QColor
+from PyQt6.QtCore import QThread, pyqtSignal, Qt, QSettings
+from PyQt6.QtGui import QFont, QPalette, QColor, QCloseEvent
 
+class ComboWithPlaceholder(QComboBox):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setEditable(True)
+    
+    def setPlaceholderText(self, text: str):
+        """Override to set placeholder on the internal line edit"""
+        if self.lineEdit():
+            self.lineEdit().setPlaceholderText(text)
+        else:
+            # Fallback for non-editable mode
+            super().setPlaceholderText(text)
 
 class FFmpegWorker(QThread):
     progress = pyqtSignal(int)
@@ -148,6 +160,37 @@ class MainWindow(QMainWindow):
         
         self.setup_ui()
         self.check_ffmpeg()
+
+    def closeEvent(self, event: QCloseEvent):
+        self.saveSettings()
+        event.accept()
+
+    def loadSettings(self):
+        settings = QSettings()
+        listUrl = settings.value("list_url")
+        self.url_input.addItems(listUrl)
+        #if len(listUrl) > 0:
+        #    self.url_input.setCurrentIndex(0)
+
+    def saveSettings(self):
+        settings = QSettings()
+        listUrls = []
+        for x in range(self.url_input.count()):
+            listUrls.append(self.url_input.itemText(x))
+        settings.setValue("list_url", listUrls)
+
+    def addUrl(self, url):
+        listUrls = []
+        for x in range(self.url_input.count()):
+            listUrls.append(self.url_input.itemText(x))
+        if( url in listUrls):
+            return
+        listUrls.append(url)
+        self.url_input.clear()
+        self.url_input.addItems(listUrls)     
+
+    def clear_url(self):
+        self.url_input.setCurrentText("")   
         
     def setup_ui(self):
         central = QWidget()
@@ -155,18 +198,29 @@ class MainWindow(QMainWindow):
         main_layout = QVBoxLayout(central)
         main_layout.setSpacing(10)
         main_layout.setContentsMargins(15, 15, 15, 15)
-        
+       
         # Input Section
         input_group = QGroupBox("Source & Destination")
         input_layout = QVBoxLayout(input_group)
         
         url_layout = QHBoxLayout()
         url_layout.addWidget(QLabel("M3U8 URL:"))
-        self.url_input = QLineEdit()
+        # self.url_input = QLineEdit()
+        # self.url_input.setPlaceholderText("https://example.com/playlist.m3u8")
+        # self.url_input.textChanged.connect(self.suggest_filename)
+        self.url_input = ComboWithPlaceholder()
+        self.url_input.setEditable(True)
+        self.url_input.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.url_input.setPlaceholderText("https://example.com/playlist.m3u8")
-        self.url_input.textChanged.connect(self.suggest_filename)
+        self.url_input.currentTextChanged.connect(self.suggest_filename)
         url_layout.addWidget(self.url_input)
         
+        self.clear_btn = QToolButton()
+        self.clear_btn.setText("❌")
+        self.clear_btn.setToolTip("Clear url")
+        self.clear_btn.clicked.connect(self.clear_url)
+        url_layout.addWidget(self.clear_btn)
+
         self.btn_paste = QPushButton("Paste & Auto-name")
         self.btn_paste.clicked.connect(self.paste_and_suggest)
         url_layout.addWidget(self.btn_paste)
@@ -271,6 +325,8 @@ class MainWindow(QMainWindow):
         self.status_bar = QStatusBar()
         self.setStatusBar(self.status_bar)
         self.status_bar.showMessage("Ready")
+
+        self.loadSettings()
         
     def toggle_encoding_options(self, state):
         copy_enabled = state == Qt.CheckState.Checked.value
@@ -278,8 +334,8 @@ class MainWindow(QMainWindow):
         self.preset_combo.setEnabled(not copy_enabled)
         self.audio_filter.setEnabled(copy_enabled)
         
-    def suggest_filename(self):
-        url = self.url_input.text().strip()
+    def suggest_filename(self, text):
+        url = self.url_input.currentText().strip()
         if not url:
             return
             
@@ -327,11 +383,14 @@ class MainWindow(QMainWindow):
             )
     
     def build_command(self):
-        url = self.url_input.text().strip()
+        url = self.url_input.currentText().strip()
         output = self.output_input.text().strip() or "output.mp4"
         
         if not url:
             raise ValueError("Please enter a valid M3U8 URL")
+        
+        self.addUrl(url)
+        self.saveSettings()
         
         # Build command
         cmd = ['-hide_banner', '-nostdin', '-stats']  # -stats forces progress output
@@ -360,6 +419,8 @@ class MainWindow(QMainWindow):
         cmd.append(output)
         
         return cmd
+    
+
     
     def start_download(self):
         try:
@@ -414,6 +475,9 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+
+    app.setOrganizationName("VideoTools")
+    app.setApplicationName("MP4 Downloader")
     
     # Optional dark theme
     app.setStyle('Fusion')
