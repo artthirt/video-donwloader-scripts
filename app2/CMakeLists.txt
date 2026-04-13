@@ -25,28 +25,17 @@ find_package(FFMPEG REQUIRED
 
 set(SOURCES
     main.cpp
-    mainwindow.cpp
-    ffmpegdecoder.cpp
-)
-
-set(HEADERS
     mainwindow.h
     ffmpegdecoder.h
-)
-
-set(UI_FILES
+    mainwindow.cpp
+    ffmpegdecoder.cpp
+    combowithplaceholder.h combowithplaceholder.cpp
     mainwindow.ui
-)
-
-set(RESOURCES
     resources/icons.qrc
 )
 
 add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE
     ${SOURCES}
-    ${HEADERS}
-    ${UI_FILES}
-    ${RESOURCES}
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${FFMPEG_INCLUDE_DIRS})
