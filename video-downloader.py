@@ -6,14 +6,14 @@ import shlex
 import threading
 import queue
 from pathlib import Path
-from PyQt6.QtWidgets import (
+from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QProgressBar, QPlainTextEdit,
     QFileDialog, QMessageBox, QGroupBox, QCheckBox, QSpinBox,
     QComboBox, QStatusBar, QSizePolicy, QToolButton
 )
-from PyQt6.QtCore import QThread, pyqtSignal, Qt, QSettings
-from PyQt6.QtGui import QFont, QPalette, QColor, QCloseEvent
+from PySide6.QtCore import QThread, Qt, QSettings, Signal
+from PySide6.QtGui import QFont, QPalette, QColor, QCloseEvent
 
 class ComboWithPlaceholder(QComboBox):
     def __init__(self, parent=None):
@@ -29,10 +29,10 @@ class ComboWithPlaceholder(QComboBox):
             super().setPlaceholderText(text)
 
 class FFmpegWorker(QThread):
-    progress = pyqtSignal(int)
-    status = pyqtSignal(str)
-    log = pyqtSignal(str)
-    finished = pyqtSignal(bool, str)
+    progress = Signal(int)
+    status = Signal(str)
+    log = Signal(str)
+    finished = Signal(bool, str)
     
     def __init__(self, cmd_args, parent=None):
         super().__init__(parent)
