@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QProgressBar, QPlainTextEdit,
     QFileDialog, QMessageBox, QGroupBox, QCheckBox, QSpinBox,
-    QComboBox, QStatusBar, QSizePolicy, QToolButton
+    QComboBox, QStatusBar, QSizePolicy, QToolButton, QGridLayout
 )
 from PySide6.QtCore import QThread, Qt, QSettings, Signal
 from PySide6.QtGui import QFont, QPalette, QColor, QCloseEvent
@@ -168,7 +168,16 @@ class MainWindow(QMainWindow):
     def loadSettings(self):
         settings = QSettings()
         listUrl = settings.value("list_url")
-        self.url_input.addItems(listUrl)
+        if type(listUrl)  is list:
+            if not ("" in listUrl):
+                listUrl.insert(0, "")
+            self.url_input.addItems(listUrl)
+
+        listOut = settings.value("list_out")
+        if type(listOut) is list:
+            if not ("" in listOut):
+                listOut.insert(0, "")
+            self.output_input.addItems(listOut)
         #if len(listUrl) > 0:
         #    self.url_input.setCurrentIndex(0)
 
@@ -178,6 +187,21 @@ class MainWindow(QMainWindow):
         for x in range(self.url_input.count()):
             listUrls.append(self.url_input.itemText(x))
         settings.setValue("list_url", listUrls)
+
+        listOut = []
+        for x in range(self.output_input.count()):
+            listOut.append(self.output_input.itemText(x))
+        settings.setValue("list_out", listOut)
+
+    def addOut(self, val):
+        listOut = []
+        for x in range(self.output_input.count()):
+            listOut.append(self.output_input.itemText(x))
+        if( val in listOut):
+            return
+        listOut.append(val)
+        self.output_input.clear()
+        self.output_input.addItems(listOut)     
 
     def addUrl(self, url):
         listUrls = []
@@ -192,6 +216,16 @@ class MainWindow(QMainWindow):
     def clear_url(self):
         self.url_input.setCurrentText("")   
         
+    def clear_out(self):
+        self.output_input.setCurrentText("")   
+
+    def clipboard_paste(self):
+        clipboard = QApplication.clipboard()
+        mime_data = clipboard.mimeData()
+        if mime_data.hasText():
+            text = clipboard.text()
+            self.url_input.setCurrentText(text)
+
     def setup_ui(self):
         central = QWidget()
         self.setCentralWidget(central)
@@ -201,10 +235,10 @@ class MainWindow(QMainWindow):
        
         # Input Section
         input_group = QGroupBox("Source & Destination")
-        input_layout = QVBoxLayout(input_group)
+        input_layout = QGridLayout(input_group)
         
-        url_layout = QHBoxLayout()
-        url_layout.addWidget(QLabel("M3U8 URL:"))
+        #url_layout = QHBoxLayout()
+        input_layout.addWidget(QLabel("M3U8 URL:"), 0, 0)
         # self.url_input = QLineEdit()
         # self.url_input.setPlaceholderText("https://example.com/playlist.m3u8")
         # self.url_input.textChanged.connect(self.suggest_filename)
@@ -213,29 +247,44 @@ class MainWindow(QMainWindow):
         self.url_input.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.url_input.setPlaceholderText("https://example.com/playlist.m3u8")
         self.url_input.currentTextChanged.connect(self.suggest_filename)
-        url_layout.addWidget(self.url_input)
+        input_layout.addWidget(self.url_input, 0, 1)
         
         self.clear_btn = QToolButton()
         self.clear_btn.setText("❌")
         self.clear_btn.setToolTip("Clear url")
         self.clear_btn.clicked.connect(self.clear_url)
-        url_layout.addWidget(self.clear_btn)
+        input_layout.addWidget(self.clear_btn, 0, 2)
 
         self.btn_paste = QPushButton("Paste & Auto-name")
         self.btn_paste.clicked.connect(self.paste_and_suggest)
-        url_layout.addWidget(self.btn_paste)
-        input_layout.addLayout(url_layout)
-        
-        out_layout = QHBoxLayout()
-        out_layout.addWidget(QLabel("Output File:"))
-        self.output_input = QLineEdit()
+        input_layout.addWidget(self.btn_paste, 0, 3)
+        #input_layout.addLayout(url_layout)
+
+        self.clipboard_btn = QToolButton()
+        self.clipboard_btn.setText("📋")
+        self.clipboard_btn.setToolTip("Paste from clipboard")
+        self.clipboard_btn.clicked.connect(self.clipboard_paste)
+        input_layout.addWidget(self.clipboard_btn, 0, 4)
+
+        #out_layout = QHBoxLayout()
+        input_layout.addWidget(QLabel("Output File:"), 1, 0)
+        self.output_input = ComboWithPlaceholder()
+        self.output_input.setEditable(True)
+        self.output_input.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.output_input.setPlaceholderText("output.mp4")
-        out_layout.addWidget(self.output_input)
-        
+        input_layout.addWidget(self.output_input, 1, 1)
+
+        self.clear_btn_out = QToolButton()
+        self.clear_btn_out.setText("❌")
+        self.clear_btn_out.setToolTip("Clear url")
+        self.clear_btn_out.clicked.connect(self.clear_out)
+        input_layout.addWidget(self.clear_btn_out, 1, 2)
+
+
         self.btn_browse = QPushButton("Browse...")
         self.btn_browse.clicked.connect(self.browse_output)
-        out_layout.addWidget(self.btn_browse)
-        input_layout.addLayout(out_layout)
+        input_layout.addWidget(self.btn_browse, 1, 3)
+        #input_layout.addLayout(out_layout)
         
         main_layout.addWidget(input_group)
         
@@ -346,8 +395,8 @@ class MainWindow(QMainWindow):
             
             if name and name not in ['index', 'playlist', 'master', 'stream']:
                 suggested = f"{name}.mp4"
-                if not self.output_input.text():
-                    self.output_input.setText(suggested)
+                if not self.output_input.currentText():
+                    self.output_input.setCurrentText(suggested)
         except:
             pass
     
@@ -365,7 +414,7 @@ class MainWindow(QMainWindow):
         if file_path:
             if not file_path.endswith('.mp4'):
                 file_path += '.mp4'
-            self.output_input.setText(file_path)
+            self.output_input.setCurrentText(file_path)
     
     def check_ffmpeg(self):
         try:
@@ -384,12 +433,13 @@ class MainWindow(QMainWindow):
     
     def build_command(self):
         url = self.url_input.currentText().strip()
-        output = self.output_input.text().strip() or "output.mp4"
+        output = self.output_input.currentText().strip() or "output.mp4"
         
         if not url:
             raise ValueError("Please enter a valid M3U8 URL")
         
         self.addUrl(url)
+        self.addOut(output)
         self.saveSettings()
         
         # Build command
