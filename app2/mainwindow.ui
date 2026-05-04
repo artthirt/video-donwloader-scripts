@@ -43,15 +43,15 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="0" column="0">
           <widget class="QLabel" name="labelUrl">
            <property name="text">
             <string>M3U8 URL:</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="0" column="1">
           <widget class="ComboWithPlaceholder" name="lineEditUrl">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -67,7 +67,7 @@
            </property>
           </widget>
          </item>
-         <item>
+         <item row="0" column="2">
           <widget class="QToolButton" name="tbtClearListUrls">
            <property name="toolTip">
             <string>Clear list or urls</string>
@@ -77,35 +77,43 @@
            </property>
           </widget>
          </item>
-         <item>
-          <widget class="QPushButton" name="btnPaste">
-           <property name="toolTip">
-            <string>Paste URL from clipboard and auto-suggest filename</string>
-           </property>
-           <property name="text">
-            <string>Paste &amp; Auto-name</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_2">
-         <item>
+         <item row="1" column="0">
           <widget class="QLabel" name="labelOutput">
            <property name="text">
             <string>Output File:</string>
            </property>
           </widget>
          </item>
-         <item>
-          <widget class="QLineEdit" name="lineEditOutput">
+         <item row="1" column="1">
+          <widget class="ComboWithPlaceholder" name="lineEditOutput">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="editable">
+            <bool>true</bool>
+           </property>
            <property name="placeholderText">
             <string>output.mp4</string>
            </property>
+           <property name="duplicatesEnabled">
+            <bool>false</bool>
+           </property>
           </widget>
          </item>
-         <item>
+         <item row="0" column="3">
+          <widget class="QToolButton" name="tbtPastFromClipboard">
+           <property name="toolTip">
+            <string>Clear list or urls</string>
+           </property>
+           <property name="text">
+            <string>📋</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2" colspan="2">
           <widget class="QPushButton" name="btnBrowse">
            <property name="text">
             <string>Browse...</string>
@@ -113,6 +121,9 @@
           </widget>
          </item>
         </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2"/>
        </item>
       </layout>
      </widget>

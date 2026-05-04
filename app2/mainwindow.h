@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QCompleter>
+#include <QStringListModel>
 #include <memory>
 
 #include "ffmpegdecoder.h"
@@ -32,6 +34,8 @@ private slots:
     void onLog(const QString &text);
     void onFinished(bool success, const QString &message);
 
+    void on_tbtPastFromClipboard_clicked();
+
 private:
     void setupConnections();
     void suggestFilename();
@@ -41,9 +45,13 @@ private:
     void saveSettings();
 
     void addUrlToHistory(const QString& url);
+    void addOutToHistory(const QString& url);
 
     std::unique_ptr<Ui::MainWindow> ui;
-    FFmpegDecoder *m_decoder;
+    FFmpegDecoder *m_decoder{};
+
+    QCompleter mCompleterOut;
+    QStringListModel mCompleterModel;
 };
 
 #endif // MAINWINDOW_H

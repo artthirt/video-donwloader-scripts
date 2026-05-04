@@ -12,6 +12,10 @@ set(CMAKE_AUTOUIC ON)
 # Find Qt6
 find_package(Qt6 COMPONENTS Core Gui Widgets Svg REQUIRED)
 
+# Windows: vcpkg.exe export ffmpeg --raw
+# copy vcpkg-export-... to ./vcpkg-ffmpeg
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/vcpkg-ffmpeg/installed/x64-windows")
+
 # Find FFmpeg via vcpkg or system
 # vcpkg install ffmpeg[avcodec,avformat,avutil,swresample,swscale]:x64-windows
 find_package(FFMPEG REQUIRED

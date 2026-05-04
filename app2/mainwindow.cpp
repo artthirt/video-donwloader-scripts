@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "ffmpegdecoder.h"
 
+#include <QMimeData>
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QClipboard>
@@ -19,6 +20,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     setupConnections();
+
+    mCompleterOut.setModel(&mCompleterModel);
+    ui->lineEditOutput->setCompleter(&mCompleterOut);
     
     // Setup decoder callbacks using Qt's signal/slot mechanism via invokeMethod
     m_decoder->onProgress = [this](const FFmpegDecoder::ProgressInfo &info) {
@@ -53,7 +57,6 @@ void MainWindow::setupConnections()
 {
     //connect(ui->lineEditUrl, &QLineEdit::textChanged, this, &MainWindow::onUrlTextChanged);
     connect(ui->lineEditUrl, &QComboBox::currentTextChanged, this, &MainWindow::onUrlTextChanged);
-    connect(ui->btnPaste, &QPushButton::clicked, this, &MainWindow::onPasteClicked);
     connect(ui->btnBrowse, &QPushButton::clicked, this, &MainWindow::onBrowseClicked);
     connect(ui->checkBoxCopy, &QCheckBox::stateChanged, this, &MainWindow::onCopyToggled);
     connect(ui->btnStart, &QPushButton::clicked, this, &MainWindow::onStartClicked);
@@ -81,8 +84,8 @@ void MainWindow::suggestFilename()
     if (!name.isEmpty() && name != "index" && name != "playlist" 
         && name != "master" && name != "stream") {
         QString suggested = name + ".mp4";
-        if (ui->lineEditOutput->text().isEmpty()) {
-            ui->lineEditOutput->setText(suggested);
+        if (ui->lineEditOutput->currentText().isEmpty()) {
+            ui->lineEditOutput->setCurrentText(suggested);
         }
     }
 }
@@ -111,7 +114,7 @@ void MainWindow::onBrowseClicked()
         if (!filePath.endsWith(".mp4", Qt::CaseInsensitive)) {
             filePath += ".mp4";
         }
-        ui->lineEditOutput->setText(filePath);
+        ui->lineEditOutput->setCurrentText(filePath);
     }
 }
 
@@ -126,7 +129,7 @@ void MainWindow::onCopyToggled(int state)
 bool MainWindow::validateInputs()
 {
     QString url = ui->lineEditUrl->currentText().trimmed();
-    QString output = ui->lineEditOutput->text().trimmed();
+    QString output = ui->lineEditOutput->currentText().trimmed();
     
     if (url.isEmpty()) {
         QMessageBox::warning(this, "Input Error", "Please enter a valid M3U8 URL");
@@ -134,7 +137,7 @@ bool MainWindow::validateInputs()
     }
     
     if (output.isEmpty()) {
-        ui->lineEditOutput->setText("output.mp4");
+        ui->lineEditOutput->setCurrentText("output.mp4");
     }
     
     return true;
@@ -146,31 +149,59 @@ void MainWindow::loadSettings()
 
     auto listUrls = settings.value("list_urls").toStringList();
     ui->lineEditUrl->addItems(listUrls);
+
+    auto listOuts = settings.value("list_outs").toStringList();
+    ui->lineEditOutput->addItems(listOuts);
+    mCompleterModel.setStringList(listOuts);
+}
+
+QStringList saveToSett(QSettings& settings, QComboBox *cb, QString key)
+{
+    QStringList list;
+    for(int i = 0; i < cb->count(); ++i){
+        list << cb->itemText(i);
+    }
+    settings.setValue(key, list);
+    return list;
 }
 
 void MainWindow::saveSettings()
 {
     QSettings settings;
 
-    QStringList listUrls;
-    for(int i = 0; i < ui->lineEditUrl->count(); ++i){
-        listUrls << ui->lineEditUrl->itemText(i);
-    }
-    settings.setValue("list_urls", listUrls);
+    saveToSett(settings, ui->lineEditUrl, "list_urls");
+    saveToSett(settings, ui->lineEditOutput, "list_outs");
 }
 
 void MainWindow::addUrlToHistory(const QString &url)
 {
-    QStringList listUrls;
+    QStringList list;
     for(int i = 0; i < ui->lineEditUrl->count(); ++i){
-        listUrls << ui->lineEditUrl->itemText(i);
+        list << ui->lineEditUrl->itemText(i);
     }
-    if(listUrls.contains(url)){
+    if(list.contains(url)){
         return;
     }
-    listUrls << url;
+    list << url;
     ui->lineEditUrl->clear();
-    ui->lineEditUrl->addItems(listUrls);
+    ui->lineEditUrl->addItems(list);
+    QEventLoop lp;
+    lp.processEvents();
+}
+
+void MainWindow::addOutToHistory(const QString &url)
+{
+    QStringList list;
+    for(int i = 0; i < ui->lineEditOutput->count(); ++i){
+        list << ui->lineEditOutput->itemText(i);
+    }
+    if(list.contains(url)){
+        return;
+    }
+    list << url;
+    ui->lineEditOutput->clear();
+    ui->lineEditOutput->addItems(list);
+    mCompleterModel.setStringList(list);
     QEventLoop lp;
     lp.processEvents();
 }
@@ -180,8 +211,9 @@ void MainWindow::onStartClicked()
     if (!validateInputs()) return;
     
     QString url = ui->lineEditUrl->currentText().trimmed();
-    QString output = ui->lineEditOutput->text().trimmed();
+    QString output = ui->lineEditOutput->currentText().trimmed();
     addUrlToHistory(url);
+    addOutToHistory(output);
     saveSettings();
     
     ui->plainTextEditLog->clear();
@@ -252,4 +284,13 @@ void MainWindow::onFinished(bool success, const QString &message)
     }
     
     ui->statusBar->showMessage(message);
+}
+
+void MainWindow::on_tbtPastFromClipboard_clicked()
+{
+    auto clip = qApp->clipboard();
+    auto md = clip->mimeData();
+    if(md->hasText()){
+        ui->lineEditUrl->setCurrentText(md->text());
+    }
 }
