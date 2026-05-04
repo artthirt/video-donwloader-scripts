@@ -1,4 +1,4 @@
-## Donwloading m3u8 to a mp4 container
+## Downloading m3u8 to a mp4 container
 
 ###  build stand-alone app
 
