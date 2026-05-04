@@ -3,5 +3,5 @@
 ###  build stand-alone app
 
 ```cmd
-python -m nuitka --standalone --onefile --enable-plugin=pyqt6 --windows-disable-console  --include-data-files=ffmpeg.exe=ffmpeg.exe --output-dir=build video-downloader.py
+python -m nuitka --standalone --onefile --enable-plugin=pyside6 --windows-disable-console  --include-data-files=ffmpeg.exe=ffmpeg.exe --output-dir=build video-downloader.py
 ```
