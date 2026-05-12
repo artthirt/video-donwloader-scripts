@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QFileDialog, QMessageBox, QGroupBox, QCheckBox, QSpinBox,
     QComboBox, QStatusBar, QSizePolicy, QToolButton, QGridLayout,
     QCompleter, QTableWidget, QTableWidgetItem, QHeaderView, QSplitter,
+    QMenu,
 )
 from PySide6.QtCore import Qt, QSettings, QStringListModel, QModelIndex
 from PySide6.QtGui import QFont, QPalette, QColor, QCloseEvent
@@ -183,6 +184,42 @@ class MainWindow(QMainWindow):
             self.url_input.setCurrentText(item.url)
             self.output_input.setCurrentText(item.output)
 
+    def show_context_menu(self, pos):
+        item = self.history_table.itemAt(pos)
+        if(item is None):
+            return
+        
+        row = item.row()
+        column = item.column()
+
+        menu = QMenu(self)
+
+        # action_info = menu.addAction(
+        #     f"Cell [{row}:{column}]"
+        # )
+        action_copy_file = menu.addAction("Copy File Name")
+        action_copy_ref  = menu.addAction("Copy Reference")
+        action_copy_to_file_place = menu.addAction("Copy File Name to Output")
+
+        action_remove = menu.addAction("Remove row")
+        
+        action = menu.exec(
+            self.history_table.viewport().mapToGlobal(pos)
+        )
+
+        if action == action_remove:
+            self.history_table.removeRow(row)
+            del self.download_history[row]
+        elif action == action_copy_file:
+            name = self.download_history[row].output
+            QApplication.clipboard().setText(name)
+        elif action == action_copy_ref:
+            name = self.download_history[row].url
+            QApplication.clipboard().setText(name)
+        elif action == action_copy_to_file_place:
+            name = self.download_history[row].output
+            self.output_input.setCurrentText(name)
+
     def setup_ui(self):
         central = QWidget()
         self.setCentralWidget(central)
@@ -313,6 +350,10 @@ class MainWindow(QMainWindow):
         self.history_table.setMaximumBlockCount = 1000  # Visual limit
         self.history_table.setAlternatingRowColors(True)
         self.history_table.setMinimumWidth(350)
+        self.history_table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.history_table.customContextMenuRequested.connect(
+            self.show_context_menu
+        )
         self.history_table.doubleClicked.connect(self.historyDoubleClick)
         self.splitter.addWidget(self.history_table)
         
@@ -324,7 +365,7 @@ class MainWindow(QMainWindow):
         self.splitter.addWidget(self.log_output)
         
         # Set splitter proportions (30% table, 70% log)
-        self.splitter.setSizes([350, 650])
+        self.splitter.setSizes([650, 350])
         main_layout.addWidget(self.splitter, stretch=1)
         
         # Controls
@@ -555,7 +596,7 @@ class MainWindow(QMainWindow):
             self.progress_bar.setValue(100)
             if self.current_row >= 0:
                 self.update_history_status(self.current_row, "Downloaded")
-            QMessageBox.information(self, "Success", message)
+            #QMessageBox.information(self, "Success", message)
         else:
             self.progress_bar.setValue(0)
             if self.current_row >= 0:
