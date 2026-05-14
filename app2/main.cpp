@@ -6,7 +6,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    a.setApplicationName("M3U8 Downloader");
+    a.setApplicationName("MP4 Downloader");
     a.setOrganizationName("VideoTools");
     
     // Optional dark theme

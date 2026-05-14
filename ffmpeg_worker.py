@@ -16,6 +16,9 @@ class FFmpegWorker(QThread):
         self._is_running = True
         self.duration_seconds = 0
         self.duration_found = False
+
+    def is_running(self):
+        return self._is_running
         
     def time_to_seconds(self, time_str):
         try:
@@ -123,4 +126,5 @@ class FFmpegWorker(QThread):
                 self.finished.emit(False, f"FFmpeg exited with code {self.process.returncode}")
                 
         except Exception as e:
+            self._is_running = False
             self.finished.emit(False, f"Error: {str(e)}")

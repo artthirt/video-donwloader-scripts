@@ -76,6 +76,7 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(1100, 700)
         self.worker = None
         self.download_history = []
+        self.waiting_list = []
         self.current_row = -1  # Track which row is currently downloading
         
         self.setup_ui()
@@ -539,18 +540,44 @@ class MainWindow(QMainWindow):
         
         return cmd, url, output
     
-    def start_download(self):
+    def is_running(self):
+        return not self.worker is None and self.worker.is_running()
+    
+    def check_waiting_list(self):
+        if len(self.waiting_list) == 0:
+            return
+        item = self.waiting_list.pop(0)
+        if item is None:
+            return
+        url = item.url
+        output = item.output
+        if not self.is_running():
+            self.start_download(url, output)
+
+    
+    def start_download(self, manual_url = None, manual_output = None):
         try:
             cmd_args, url, output = self.build_command()
+
+            if self.is_running():
+                item = DownloadHistoryItem(url, output)
+                self.waiting_list.append(item)
+                self.add_history_row(output_name=output, url=url)
+                return
+            
+            if type(manual_url) is str and type(manual_output) is str:
+                url = manual_url
+                output = manual_output
+
             self.log_output.clear()
             self.log_output.appendPlainText(f"Command: ffmpeg {' '.join(cmd_args)}\n")
             self.log_output.appendPlainText("Starting FFmpeg process...\n")
             
             self.progress_bar.setValue(0)
-            self.btn_start.setEnabled(False)
+            #self.btn_start.setEnabled(False)
             self.btn_cancel.setEnabled(True)
-            self.url_input.setEnabled(False)
-            self.output_input.setEnabled(False)
+            #self.url_input.setEnabled(False)
+            #self.output_input.setEnabled(False)
             
             # Add to history table
             output_name = os.path.basename(output)
@@ -605,6 +632,9 @@ class MainWindow(QMainWindow):
         
         self.status_bar.showMessage(message)
         self.current_row = -1
+        self.worker = None        
+
+        self.check_waiting_list()
 
 
 if __name__ == '__main__':
